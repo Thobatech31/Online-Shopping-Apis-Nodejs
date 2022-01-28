@@ -56,12 +56,12 @@ router.post("/login", async (req, res) =>{
     //check if the user with the username exist
     const user = await User.findOne({username: username})
     if(!user)
-    return res.status(401).json({msg: "Wrong Email or Password"})
+    return res.status(401).json({msg: "Wrong Username or Password"})
 
     const hashPassword = CryptoJS.AES.decrypt(user.password, process.env.ENCRYPT_PASSWORD_KEY); //Decrypting the password to the normal character
     const originalPassword = hashPassword.toString(CryptoJS.enc.Utf8);
     if(originalPassword != req.body.password)
-    return res.status(401).json({msg: "Wrong Email or Password"});
+    return res.status(401).json({msg: "Wrong Username or Password"});
 
     const token = jwt.sign({
         id:user._id,
