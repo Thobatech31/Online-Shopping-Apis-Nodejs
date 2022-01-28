@@ -44,6 +44,23 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) =>{
     }
 })
 
+//GET USER Profile
+router.get("/profile", verifyTokenAndAdmin, async (req, res) =>{
+    try{
+        const user = req.user;
+        return res.status(200).json({
+            status:{
+                code:100,
+                msg:'User fetched successfully'
+            },
+            data: user
+        })
+    }catch (err){
+        return res.status(500).json({msg:err});
+    }
+})
+
+
 //GET USER (Note only admin can get user)
 router.get("/:id", verifyTokenAndAdmin, async (req, res) =>{
     try{
