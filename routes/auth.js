@@ -247,7 +247,7 @@ router.put("/reset-password", async (req, res) => {
 })
 
 //CHANGE PASSWORD
-router.put("/change-password", verifyToken, async (req, res) => {
+router.post("/change-password", verifyToken, async (req, res) => {
     const { oldPassword, newPassword, confirmNewPassword } = req.body
     const useremail = req.user.email;
     const user = await User.findOne({ useremail })
@@ -255,17 +255,25 @@ router.put("/change-password", verifyToken, async (req, res) => {
     const originalPassword = CryptoJS.AES.decrypt(user.password, process.env.ENCRYPT_PASSWORD_KEY).toString(CryptoJS.enc.Utf8); //Using CRYPTOJS on password Encryption 
 
     if (originalPassword == oldPassword) {
-        // const newHashPassword = CryptoJS.AES.encrypt(user.password, process.env.ENCRYPT_PASSWORD_KEY)
         if (newPassword == confirmNewPassword) {
-            // user.updateOne({password:newPassword})
 
-            return res.status(200).json({
-                status: {
-                    code: 100,
-                    msg: "Password Updated Succesfully"
-                },
-                // data: newHashPassword
+            const newHashPassword = CryptoJS.AES.encrypt(newPassword, process.env.ENCRYPT_PASSWORD_KEY)
+
+            return user.updateOne({ password: 'U2FsdGVkX19fKpq+tqJop1MQWTnK/UGTb4Gp2q2I2Es='  }, function (err, success) {
+                if (err) {
+                    return res.status(400).json({ msg: "Error occure" });
+                } else {
+
+                    return res.status(200).json({
+                        status: {
+                            code: 100,
+                            msg: "Password Updated Succesfully"
+                        },
+                        // data: user.password
+                    })
+                }
             })
+
 
         } else {
             res.status(401).json({ msg: "New Password does not matches Confirm Password" })
