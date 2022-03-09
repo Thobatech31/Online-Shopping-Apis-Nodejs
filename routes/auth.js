@@ -288,6 +288,14 @@ router.post("/change-password", verifyToken, async (req, res) => {
 //LOGIN
 router.post("/login", async (req, res) => {
     const { username } = req.body;
+    //Check If Username Field Empty
+    if (!username)
+        return res.status(401).json({ msg: "Username Field is Empty" })
+
+    //Check If Username Field Empty
+    if (!password)
+        return res.status(401).json({ msg: "Password Field is Empty" })
+
 
     try {
         //check if the user with the username exist
