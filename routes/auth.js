@@ -5,10 +5,14 @@ const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const mailgun = require("mailgun-js");
 const { result } = require('lodash');
-const DOMAIN = 'sandbox1007fd244adb439091af67d5b46543d1.mailgun.org';
-const mg = mailgun({ apiKey: 'efe5ce01dcc618d9e3b297f06f81cc8a-c250c684-64e5fd3a', domain: DOMAIN });
+
+const dotenv = require("dotenv");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin, verifyToken } = require("../verifyToken");
 
+dotenv.config();
+
+const DOMAIN = process.env.MAILGUN_DOMAIN;
+const mg = mailgun({ apiKey: process.env.MAILGUN_APP_APIKEY, domain: DOMAIN });
 
 //REGISTER WITHOUT EMAIL VERIFICATION
 router.post("/register", async (req, res) => {
@@ -259,7 +263,7 @@ router.post("/change-password", verifyToken, async (req, res) => {
 
             const newHashPassword = CryptoJS.AES.encrypt(newPassword, process.env.ENCRYPT_PASSWORD_KEY)
 
-            return user.updateOne({ password: 'U2FsdGVkX19fKpq+tqJop1MQWTnK/UGTb4Gp2q2I2Es='  }, function (err, success) {
+            return user.updateOne({ password: 'U2FsdGVkX19fKpq+tqJop1MQWTnK/UGTb4Gp2q2I2Es=' }, function (err, success) {
                 if (err) {
                     return res.status(400).json({ msg: "Error occure" });
                 } else {
@@ -284,6 +288,10 @@ router.post("/change-password", verifyToken, async (req, res) => {
     }
 
 })
+
+
+
+
 
 //LOGIN
 router.post("/login", async (req, res) => {
