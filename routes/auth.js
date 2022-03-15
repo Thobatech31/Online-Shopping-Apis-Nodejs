@@ -5,10 +5,14 @@ const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const mailgun = require("mailgun-js");
 const { result } = require('lodash');
-const DOMAIN = 'sandbox1007fd244adb439091af67d5b46543d1.mailgun.org';
-const mg = mailgun({ apiKey: 'efe5ce01dcc618d9e3b297f06f81cc8a-c250c684-64e5fd3a', domain: DOMAIN });
+
+const dotenv = require("dotenv");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin, verifyToken } = require("../verifyToken");
 
+dotenv.config();
+
+const DOMAIN = process.env.MAILGUN_DOMAIN;
+const mg = mailgun({ apiKey: process.env.MAILGUN_APP_APIKEY, domain: DOMAIN });
 
 //REGISTER WITHOUT EMAIL VERIFICATION
 router.post("/register", async (req, res) => {
@@ -247,7 +251,7 @@ router.put("/reset-password", async (req, res) => {
 })
 
 //CHANGE PASSWORD
-router.put("/change-password", verifyToken, async (req, res) => {
+router.post("/change-password", verifyToken, async (req, res) => {
     const { oldPassword, newPassword, confirmNewPassword } = req.body
     const useremail = req.user.email;
     const user = await User.findOne({ useremail })
@@ -255,17 +259,25 @@ router.put("/change-password", verifyToken, async (req, res) => {
     const originalPassword = CryptoJS.AES.decrypt(user.password, process.env.ENCRYPT_PASSWORD_KEY).toString(CryptoJS.enc.Utf8); //Using CRYPTOJS on password Encryption 
 
     if (originalPassword == oldPassword) {
-        // const newHashPassword = CryptoJS.AES.encrypt(user.password, process.env.ENCRYPT_PASSWORD_KEY)
         if (newPassword == confirmNewPassword) {
-            // user.updateOne({password:newPassword})
 
-            return res.status(200).json({
-                status: {
-                    code: 100,
-                    msg: "Password Updated Succesfully"
-                },
-                // data: newHashPassword
+            const newHashPassword = CryptoJS.AES.encrypt(newPassword, process.env.ENCRYPT_PASSWORD_KEY)
+
+            return user.updateOne({ password: 'U2FsdGVkX19fKpq+tqJop1MQWTnK/UGTb4Gp2q2I2Es=' }, function (err, success) {
+                if (err) {
+                    return res.status(400).json({ msg: "Error occure" });
+                } else {
+
+                    return res.status(200).json({
+                        status: {
+                            code: 100,
+                            msg: "Password Updated Succesfully"
+                        },
+                        // data: user.password
+                    })
+                }
             })
+
 
         } else {
             res.status(401).json({ msg: "New Password does not matches Confirm Password" })
@@ -277,9 +289,21 @@ router.put("/change-password", verifyToken, async (req, res) => {
 
 })
 
+
+
+
+
 //LOGIN
 router.post("/login", async (req, res) => {
-    const { username } = req.body;
+    const { username, password } = req.body;
+    //Check If Username Field Empty
+    if (!username)
+        return res.status(401).json({ msg: "Username Field is Empty" })
+
+    //Check If Username Field Empty
+    if (!password)
+        return res.status(401).json({ msg: "Password Field is Empty" })
+
 
     try {
         //check if the user with the username exist
